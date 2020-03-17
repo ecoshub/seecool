@@ -1,99 +1,11 @@
-package main
+package sqljson
 
 import (
-	"database/sql"
-	"fmt"
-	"jin"
 	"reflect"
 	"strconv"
 	"time"
 	"unsafe"
-
-	_ "github.com/lib/pq"
 )
-
-type test struct {
-	val *interface{}
-}
-
-func main() {
-	connStr := "user=ecomain dbname=first sslmode=disable"
-	db, err := sql.Open("postgres", connStr)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	rows, err := db.Query("select * from person where gender = 'Male' and birth_date > '2010-01-01'")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer rows.Close()
-
-	json, err := rowsToJson(rows)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	jsonb := stringToByteArray(json)
-
-	prs, err := jin.Parse(jsonb)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	val, err := prs.GetString("0", "country")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(val)
-}
-
-func rowsToJson(rows *sql.Rows) (string, error) {
-	coltyps, err := rows.ColumnTypes()
-	if err != nil {
-		return "null", err
-	}
-
-	lenc := len(coltyps)
-	values := make([]interface{}, lenc)
-	referance := make([]interface{}, lenc)
-	for i := range values {
-		referance[i] = &values[i]
-	}
-
-	json := "["
-	count := 0
-	for rows.Next() {
-		err = rows.Scan(referance...)
-		if err != nil {
-			return "", err
-		}
-		temp := "{"
-		if lenc == 0 {
-			temp = "{}"
-			continue
-		}
-		for i := 0; i < lenc-1; i++ {
-			temp += `"` + coltyps[i].Name() + `":`
-			temp += formatType(toString(values[i])) + `,`
-		}
-		temp += `"` + coltyps[lenc-1].Name() + `":`
-		temp += formatType(toString(values[lenc-1]))
-		temp += "}"
-		json += temp
-		json += ","
-		count++
-	}
-	if count > 0 {
-		json = json[:len(json)-1]
-	}
-	json += "]"
-	return json, nil
-}
 
 func formatType(val string) string {
 	if len(val) > 0 {
@@ -142,7 +54,7 @@ func isInt(val string) bool {
 	return true
 }
 
-func toString(i interface{}) string {
+func CoreEncoder(i interface{}) string {
 	if i == nil {
 		return "null"
 	}
