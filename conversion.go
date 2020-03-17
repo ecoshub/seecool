@@ -26,7 +26,7 @@ func RowsToJson(rows *sql.Rows) (string, error) {
 	}
 
 	json := "["
-	count := 0
+	count := false
 	for rows.Next() {
 		err = rows.Scan(referance...)
 		if err != nil {
@@ -46,9 +46,9 @@ func RowsToJson(rows *sql.Rows) (string, error) {
 		temp += "}"
 		json += temp
 		json += ","
-		count++
+		count = true
 	}
-	if count > 0 {
+	if count {
 		json = json[:len(json)-1]
 	}
 	json += "]"
