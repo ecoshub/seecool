@@ -75,6 +75,11 @@ func CoreEncoder(i interface{}) string {
 		return intEncoder(i)
 	case reflect.Float32, reflect.Float64:
 		return floatEncoder(i)
+	case reflect.Slice:
+		switch t.Elem().Kind() {
+		case reflect.Uint8:
+			return string(v.Bytes())
+		}
 	case reflect.Struct:
 		switch t.String() {
 		case "time.Time":
