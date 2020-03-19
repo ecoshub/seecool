@@ -4,6 +4,7 @@ import (
 	"database/sql"
 )
 
+// Rows to json conversion function.
 func RowsToJsonByte(rows *sql.Rows) ([]byte, error) {
 	val, err := RowsToJson(rows)
 	if err != nil {
@@ -12,6 +13,7 @@ func RowsToJsonByte(rows *sql.Rows) ([]byte, error) {
 	return stringToByteArray(val), nil
 }
 
+// Rows to json conversion function.
 func RowsToJson(rows *sql.Rows) (string, error) {
 	coltyps, err := rows.ColumnTypes()
 	if err != nil {
