@@ -7,7 +7,7 @@ import (
 	"jin"
 )
 
-var entryNotExiest string = "Entry not exist."
+var entryNotExiest string = "ERRCODE:00 Entry not exist."
 
 // {"first_name":"Jim","last_name":"Carter","email":"jimmy@gmail.com","gender":"Male","ip_address":"192.168.1.108","country":"Iraq","birth_date":"1988-01-17"}
 func Create(db *sql.DB, json []byte, table string) error {
@@ -55,7 +55,6 @@ func Read(db *sql.DB, json []byte, table string) ([]byte, error) {
 	if string(json) == `[]` {
 		return nil, errors.New(entryNotExiest)
 	}
-	fmt.Println(json)
 	return json, nil
 }
 
@@ -94,7 +93,7 @@ func Update(db *sql.DB, json []byte, table string) error {
 
 // {"unique_key":"email","value":"johnnyy@windowslive.com"}
 func Delete(db *sql.DB, json []byte, table string) error {
-	key, err := jin.GetString(json, "key")
+	key, err := jin.GetString(json, "unique_key")
 	if err != nil {
 		return err
 	}
