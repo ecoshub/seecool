@@ -11,7 +11,7 @@ var entryNotExiest string = "ERRCODE:00 Entry not exist."
 
 // {"first_name":"Jim","last_name":"Carter","email":"jimmy@gmail.com","gender":"Male","ip_address":"192.168.1.108","country":"Iraq","birth_date":"1988-01-17"}
 func Create(db *sql.DB, json []byte, table string) error {
-	query := `insert into ` + table + ` (`
+	query := `INSERT INTO ` + table + ` (`
 	keys := ``
 	values := ``
 	err := jin.IterateKeyValue(json, func(key, value []byte) bool {
@@ -24,7 +24,7 @@ func Create(db *sql.DB, json []byte, table string) error {
 	}
 	keys = keys[:len(keys)-1]
 	values = values[:len(values)-1]
-	query += keys + `) values (` + values + `)`
+	query += keys + `) VALUES (` + values + `)`
 	_, err = db.Query(query)
 	if err != nil {
 		return err
@@ -34,10 +34,10 @@ func Create(db *sql.DB, json []byte, table string) error {
 
 // {"key":"value","key2":"value2"} with and condition
 func Read(db *sql.DB, json []byte, table string) ([]byte, error) {
-	query := `select * from ` + table + ` where `
+	query := `SELECT * FROM ` + table + ` WHERE `
 	err := jin.IterateKeyValue(json, func(key, value []byte) bool {
 		query += string(key) + ` = '` + string(value) + `'`
-		query += ` and `
+		query += ` AND `
 		return true
 	})
 	if err != nil {
@@ -83,7 +83,7 @@ func Update(db *sql.DB, json []byte, table string) error {
 	if !exist {
 		return errors.New(entryNotExiest)
 	}
-	query := `update ` + table + ` set ` + key + ` = '` + newValue + `' where ` + unique_key + ` = '` + value + `'`
+	query := `UPDATE ` + table + ` SET ` + key + ` = '` + newValue + `' WHERE ` + unique_key + ` = '` + value + `'`
 	_, err = db.Query(query)
 	if err != nil {
 		return err
@@ -108,7 +108,7 @@ func Delete(db *sql.DB, json []byte, table string) error {
 	if !exist {
 		return errors.New(entryNotExiest)
 	}
-	query := `delete from ` + table + ` where ` + key + ` = '` + value + `'`
+	query := `DELETE FROM ` + table + ` WHERE ` + key + ` = '` + value + `'`
 	_, err = db.Query(query)
 	if err != nil {
 		return err
@@ -118,11 +118,11 @@ func Delete(db *sql.DB, json []byte, table string) error {
 
 // {"key":"value","key2":"value2"} with regex any condition
 func Find(db *sql.DB, json []byte, table string) ([]byte, error) {
-	query := `select * from ` + table + ` where `
+	query := `SELECT * FROM ` + table + ` WHERE `
 	in := false
 	err := jin.IterateKeyValue(json, func(key, value []byte) bool {
 		query += string(key) + ` ~* '` + string(value) + `'`
-		query += ` and `
+		query += ` AND `
 		in = true
 		return true
 	})
@@ -147,12 +147,12 @@ func Find(db *sql.DB, json []byte, table string) ([]byte, error) {
 }
 
 // {"key":"value","key2":"value2"} with and condition
-func Count(db *sql.DB, json []byte, table string) (int, error) {
-	query := `select count(*) from ` + table + ` where `
+func GetCount(db *sql.DB, json []byte, table string) (int, error) {
+	query := `SELECT COUNT(*) FROM ` + table + ` WHERE `
 	in := false
 	err := jin.IterateKeyValue(json, func(key, value []byte) bool {
 		query += string(key) + ` ~* '` + string(value) + `'`
-		query += ` and `
+		query += ` AND `
 		in = true
 		return true
 	})
@@ -182,7 +182,7 @@ func Count(db *sql.DB, json []byte, table string) (int, error) {
 }
 
 func existCore(db *sql.DB, table, unique_key, value string) (bool, error) {
-	query := `select count(*) from ` + table + ` where ` + unique_key + ` = '` + value + `'`
+	query := `SELECT COUNT(*) FROM ` + table + ` WHERE ` + unique_key + ` = '` + value + `'`
 	rows, err := db.Query(query)
 	if err != nil {
 		return false, err
