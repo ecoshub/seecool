@@ -1,5 +1,7 @@
 package sqljson
 
+import "strconv"
+
 var errorConditionType string = "Wrong type in condition statement condition can be a string or *condition."
 
 type query struct {
@@ -9,6 +11,7 @@ type query struct {
 	tbl   string
 	cond  string
 	ord   string
+	lim   string
 }
 
 func cond(left, right, op string) string {
@@ -46,8 +49,18 @@ func (q *query) BetweenDate(key, lowerLimit, upperLimit string) *query {
 	if q.cond == "" {
 		q.cond = key + " BETWEEN " + "date '" + lowerLimit + "' AND date '" + upperLimit + "'"
 	} else {
-		// err
+		q.cond += " AND " + key + " BETWEEN " + "date '" + lowerLimit + "' AND date '" + upperLimit + "'"
 	}
+	return q
+}
+
+func (q *query) Order(col string) *query {
+	q.ord = " ORDER BY " + col
+	return q
+}
+
+func (q *query) OrderDesc(col string) *query {
+	q.ord = " ORDER BY " + col + " DESC"
 	return q
 }
 
@@ -56,6 +69,25 @@ func (q *query) Table(tbl string) *query {
 	return q
 }
 
+func (q *query) Limit(lim string) *query {
+	q.lim = " LIMIT " + lim
+	return q
+}
+
+func (q *query) LimitInt(lim int) *query {
+	q.lim = " LIMIT " + strconv.Itoa(lim)
+	return q
+}
+
+func (q *query) LimitOff(lim, off string) *query {
+	q.lim = " LIMIT " + lim + " OFFSET " + off
+	return q
+}
+
+func (q *query) LimitOffInt(lim, off int) *query {
+	q.lim = " LIMIT " + strconv.Itoa(lim) + " OFFSET " + strconv.Itoa(off)
+	return q
+}
 func Select(table ...string) *query {
 	q := &query{qtype: "SELECT "}
 	lent := len(table)
@@ -81,7 +113,7 @@ func (q *query) Cond(op1, op2, op string) *query {
 	return q
 }
 
-func (q *query) ToString() (string, error) {
+func (q *query) String() (string, error) {
 	str := q.qtype
 	lenc := len(q.cols)
 	if lenc == 0 {
@@ -97,7 +129,10 @@ func (q *query) ToString() (string, error) {
 		str += " WHERE " + q.cond
 	}
 	if q.ord != "" {
-		str += " ORDER BY " + q.ord
+		str += q.ord
+	}
+	if q.lim != "" {
+		str += q.lim
 	}
 	str += ";"
 	return str, nil
