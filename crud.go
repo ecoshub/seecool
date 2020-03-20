@@ -48,7 +48,7 @@ func Read(db *sql.DB, json []byte, table string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	json, err = RowsToJsonByte(rows)
+	json, err = JsonByte(rows)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func Find(db *sql.DB, json []byte, table string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	json, err = RowsToJsonByte(rows)
+	json, err = JsonByte(rows)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +170,7 @@ func GetCount(db *sql.DB, json []byte, table string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	json, err = RowsToJsonByte(rows)
+	json, err = JsonByte(rows)
 	if err != nil {
 		return 0, err
 	}
@@ -187,7 +187,7 @@ func existCore(db *sql.DB, table, unique_key, value string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	json, err := RowsToJsonByte(rows)
+	json, err := JsonByte(rows)
 	if err != nil {
 		return false, err
 	}

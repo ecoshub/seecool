@@ -5,8 +5,8 @@ import (
 )
 
 // Rows to json conversion function.
-func RowsToJsonByte(rows *sql.Rows) ([]byte, error) {
-	val, err := RowsToJson(rows)
+func JsonByte(rows *sql.Rows) ([]byte, error) {
+	val, err := Json(rows)
 	if err != nil {
 		return nil, err
 	}
@@ -14,7 +14,7 @@ func RowsToJsonByte(rows *sql.Rows) ([]byte, error) {
 }
 
 // Rows to json conversion function.
-func RowsToJson(rows *sql.Rows) (string, error) {
+func Json(rows *sql.Rows) (string, error) {
 	coltyps, err := rows.ColumnTypes()
 	if err != nil {
 		return "null", err
