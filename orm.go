@@ -5,35 +5,59 @@ import "strconv"
 var errorConditionType string = "Wrong type in condition statement condition can be a string or *condition."
 
 type query struct {
-	start string
 	qtype string
 	cols  []string
 	tbl   string
 	cond  string
+	grp   []string
 	ord   string
 	lim   string
 }
 
-func cond(left, right, op string) string {
-	return left + " " + op + " '" + right + "'"
-}
-
-func (q *query) And(op1, op2, op string) *query {
+func (q *query) And(op1, op, op2 string) *query {
 	if q.cond == "" {
-		q.cond = cond(op1, op2, op)
+		q.cond = cond(op1, op, op2)
 	} else {
-		q.cond += " AND " + cond(op1, op2, op)
+		q.cond += " AND " + cond(op1, op, op2)
 	}
 	return q
 }
 
-func (q *query) Or(op1, op2 string, op string) *query {
+func (q *query) Or(op1, op, op2 string) *query {
 	if q.cond == "" {
-		q.cond = cond(op1, op2, op)
+		q.cond = cond(op1, op, op2)
 	} else {
-		q.cond += " OR " + cond(op1, op2, op)
+		q.cond += " OR " + cond(op1, op, op2)
 	}
 	return q
+}
+
+func (q *query) Equal(op1, op2 string) *query {
+	if q.cond == "" {
+		q.cond = cond(op1, "=", op2)
+	} else {
+		q.cond += " AND " + cond(op1, "=", op2)
+	}
+	return q
+}
+
+func (q *query) EqualInt(op1 string, op2i int) *query {
+	op2 := strconv.Itoa(op2i)
+	return q.Equal(op1, op2)
+}
+
+func (q *query) NotEqual(op1, op2 string) *query {
+	if q.cond == "" {
+		q.cond = cond(op1, "<>", op2)
+	} else {
+		q.cond += " AND " + cond(op1, "=", op2)
+	}
+	return q
+}
+
+func (q *query) NotEqualInt(op1 string, op2i int) *query {
+	op2 := strconv.Itoa(op2i)
+	return q.NotEqual(op1, op2)
 }
 
 func (q *query) Between(key, lowerLimit, upperLimit string) *query {
@@ -64,11 +88,6 @@ func (q *query) OrderDesc(col string) *query {
 	return q
 }
 
-func (q *query) Table(tbl string) *query {
-	q.tbl = tbl
-	return q
-}
-
 func (q *query) Limit(lim string) *query {
 	q.lim = " LIMIT " + lim
 	return q
@@ -88,32 +107,75 @@ func (q *query) LimitOffInt(lim, off int) *query {
 	q.lim = " LIMIT " + strconv.Itoa(lim) + " OFFSET " + strconv.Itoa(off)
 	return q
 }
-func Select(table ...string) *query {
-	q := &query{qtype: "SELECT "}
-	lent := len(table)
-	if lent == 1 {
-		q.tbl = table[0]
-	}
-	if lent > 1 {
-		q.tbl = table[lent-1]
-		q.cols = table[:lent-1]
-	}
-	return q
-}
 
-func Count(table string) *query {
+func Select(table string, cols ...string) *query {
 	q := &query{qtype: "SELECT "}
-	q.cols = append(q.cols, "COUNT(*)")
 	q.tbl = table
+	q.cols = cols
 	return q
 }
 
-func (q *query) Cond(op1, op2, op string) *query {
-	q.cond = cond(op1, op2, op)
+func Distinct(table string, cols ...string) *query {
+	q := &query{qtype: "SELECT DISTINCT "}
+	q.tbl = table
+	q.cols = cols
 	return q
 }
 
-func (q *query) String() (string, error) {
+func Count(table string, cols ...string) *query {
+	q := &query{qtype: "SELECT "}
+	q.tbl = table
+	if len(cols) == 0 {
+		q.cols = []string{"COUNT(*)"}
+	} else {
+		for _, c := range cols {
+			q.cols = append(q.cols, "COUNT("+c+")")
+		}
+	}
+	return q
+}
+
+func cond(left, op, right string) string {
+	return left + " " + op + " '" + right + "'"
+}
+
+func (q *query) Cond(op1, op, op2 string) *query {
+	if q.cond == "" {
+		q.cond = cond(op1, op, op2)
+	} else {
+		q.cond += " AND " + cond(op1, op, op2)
+	}
+	return q
+}
+
+func (q *query) CondInt(op1 string, op string, op2 int) *query {
+	q.cond = op1 + " " + op + " " + strconv.Itoa(op2)
+	return q
+}
+
+func (q *query) Columns(cols ...string) *query {
+	q.cols = append(q.cols, cols...)
+	return q
+}
+
+func (q *query) Group(cols ...string) *query {
+	q.grp = cols
+	for _, c := range cols {
+		exs := false
+		for _, g := range q.cols {
+			if c == g {
+				exs = true
+				break
+			}
+		}
+		if !exs {
+			q.cols = append(q.cols, c)
+		}
+	}
+	return q
+}
+
+func (q *query) String() string {
 	str := q.qtype
 	lenc := len(q.cols)
 	if lenc == 0 {
@@ -128,6 +190,14 @@ func (q *query) String() (string, error) {
 	if q.cond != "" {
 		str += " WHERE " + q.cond
 	}
+	leng := len(q.grp)
+	if leng != 0 {
+		str += " GROUP BY "
+		for i := 0; i < leng-1; i++ {
+			str += q.grp[i] + ", "
+		}
+		str += q.grp[leng-1]
+	}
 	if q.ord != "" {
 		str += q.ord
 	}
@@ -135,5 +205,5 @@ func (q *query) String() (string, error) {
 		str += q.lim
 	}
 	str += ";"
-	return str, nil
+	return str
 }
