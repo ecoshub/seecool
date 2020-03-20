@@ -1,4 +1,4 @@
-package sqljson
+package seecool
 
 import "strconv"
 
