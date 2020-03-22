@@ -14,6 +14,26 @@ type query struct {
 	lim   string
 }
 
+func (q *query) In(col string, list ...string) *query {
+	lenl := len(list)
+	if lenl == 0 {
+		return q
+	} else {
+
+	}
+	elements := "("
+	for i := 0; i < lenl-1; i++ {
+		elements += list[i] + `, `
+	}
+	elements += list[lenl-1] + ")"
+	if q.cond == "" {
+		q.cond = col + ` IN ` + elements
+	} else {
+		q.cond += " AND " + col + ` IN ` + elements
+	}
+	return q
+}
+
 func (q *query) And(op1, op, op2 string) *query {
 	if q.cond == "" {
 		q.cond = cond(op1, op, op2)
