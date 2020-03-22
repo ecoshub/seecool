@@ -32,6 +32,15 @@ func (q *query) In(col string, list ...string) *query {
 	return q
 }
 
+func (q *query) Any(op1, op string, other *query) *query {
+	if q.cond == "" {
+		q.cond = op1 + ` ` + op + ` ` + `ANY(` + other.String() + `)`
+	} else {
+		q.cond += " AND " + op1 + ` ` + op + ` ` + `ANY(` + other.String() + `)`
+	}
+	return q
+}
+
 func (q *query) Like(col, cond string) *query {
 	if q.cond == "" {
 		q.cond = col + ` LIKE '` + cond + `'`
@@ -240,6 +249,5 @@ func (q *query) String() string {
 	if q.lim != "" {
 		str += q.lim
 	}
-	str += ";"
 	return str
 }
