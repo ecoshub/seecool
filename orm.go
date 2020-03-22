@@ -18,8 +18,6 @@ func (q *query) In(col string, list ...string) *query {
 	lenl := len(list)
 	if lenl == 0 {
 		return q
-	} else {
-
 	}
 	elements := "("
 	for i := 0; i < lenl-1; i++ {
@@ -30,6 +28,24 @@ func (q *query) In(col string, list ...string) *query {
 		q.cond = col + ` IN ` + elements
 	} else {
 		q.cond += " AND " + col + ` IN ` + elements
+	}
+	return q
+}
+
+func (q *query) Like(col, cond string) *query {
+	if q.cond == "" {
+		q.cond = col + ` LIKE '` + cond + `'`
+	} else {
+		q.cond += " AND " + col + ` LIKE '` + cond + `'`
+	}
+	return q
+}
+
+func (q *query) Ilike(col, cond string) *query {
+	if q.cond == "" {
+		q.cond = col + ` ILIKE '` + cond + `'`
+	} else {
+		q.cond += " AND " + col + ` ILIKE '` + cond + `'`
 	}
 	return q
 }
