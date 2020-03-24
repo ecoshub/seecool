@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"jin"
+	"os"
 	"penman"
 	"reflect"
 	"strconv"
@@ -205,4 +206,89 @@ func CsvToJsonNoHeader(file string) ([]byte, error) {
 		line = rl.Next()
 	}
 	return arr, nil
+}
+
+func GetEnv() (map[string]string, error) {
+	dir, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+	dir = dir + penman.Sep() + ".env"
+
+	rl, err := penman.Reader(dir)
+	if err != nil {
+		return nil, err
+	}
+	defer rl.Close()
+	mp := make(map[string]string)
+	line := rl.Next()
+	for line != nil {
+		tokens := strings.Split(string(line), " ")
+		if len(tokens) > 3 || len(tokens) < 3 {
+			return nil, errors.New("Malformed.")
+		}
+		if tokens[1] != "=" {
+			return nil, errors.New("Malformed.")
+		}
+		key := strings.TrimSpace(tokens[0])
+		value := strings.TrimSpace(tokens[2])
+		mp[key] = value
+		line = rl.Next()
+	}
+	return mp, nil
+}
+
+func arrStr(arr []string) string {
+	lena := len(arr)
+	switch lena {
+	case 0:
+		return "*"
+	case 1:
+		return arr[0]
+	default:
+		str := ""
+		for i := 0; i < lena-1; i++ {
+			str += arr[i] + ", "
+		}
+		str += arr[lena-1]
+		return str
+	}
+}
+
+func inQuote(arr []string) []string {
+	for i := 0; i < len(arr); i++ {
+		arr[i] = `'` + arr[i] + `'`
+	}
+	return arr
+}
+
+func columnCheck(cols []string) []string {
+	for i, c := range cols {
+		prefix, rest := astrixCheck(c)
+		switch prefix {
+		case "":
+		case "c":
+			cols[i] = "COUNT(" + rest + ")"
+		case "a":
+			cols[i] = "AVG(" + rest + ")"
+		case "mi":
+			cols[i] = "MIN(" + rest + ")"
+		case "ma":
+			cols[i] = "MAX(" + rest + ")"
+		case "s":
+			cols[i] = "SUM(" + rest + ")"
+		default:
+			cols[i] = strings.ToUpper(prefix) + "(" + rest + ")"
+		}
+	}
+	return cols
+}
+
+func astrixCheck(str string) (string, string) {
+	for i := 0; i < len(str); i++ {
+		if str[i] == 42 {
+			return str[:i], str[i+1:]
+		}
+	}
+	return "", str
 }
