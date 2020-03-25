@@ -59,9 +59,17 @@ func (q *query) String() (string, error) {
 		lenv := len(q.values)
 		if lenk > 0 && lenv > 0 && lenk == lenv {
 			for i := 0; i < lenk-1; i++ {
-				str += q.keys[i] + " = '" + q.values[i] + "', "
+				if q.values[i][0] == '(' {
+					str += q.keys[i] + " = " + q.values[i] + ", "
+				} else {
+					str += q.keys[i] + " = '" + q.values[i] + "', "
+				}
 			}
-			str += q.keys[lenk-1] + " = '" + q.values[lenk-1] + "'"
+			if q.values[lenk-1][0] == '(' {
+				str += q.keys[lenk-1] + " = " + q.values[lenk-1]
+			} else {
+				str += q.keys[lenk-1] + " = '" + q.values[lenk-1] + "'"
+			}
 		}
 		if q.condition != "" {
 			str += " WHERE " + q.condition

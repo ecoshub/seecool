@@ -257,7 +257,9 @@ func arrStr(arr []string) string {
 
 func inQuote(arr []string) []string {
 	for i := 0; i < len(arr); i++ {
-		arr[i] = `'` + arr[i] + `'`
+		if arr[i][0] != '(' {
+			arr[i] = `'` + arr[i] + `'`
+		}
 	}
 	return arr
 }
