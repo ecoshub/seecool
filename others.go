@@ -91,7 +91,7 @@ func (q *query) AnyStr(op1, op, op2 string) *query {
 
 // any
 func (q *query) Any(op1, op string, op2 *query) *query {
-	opStr, _ := op2.String()
+	opStr := op2.String()
 	if q.condition == "" {
 		q.condition = op1 + " " + op + " " + "ANY (" + opStr + ")"
 	} else {
