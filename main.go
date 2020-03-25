@@ -1,5 +1,9 @@
 package seecool
 
+import (
+	"database/sql"
+)
+
 type query struct {
 	queryType string
 	columns   []string
@@ -65,4 +69,23 @@ func (q *query) String() (string, error) {
 		return str, nil
 	}
 	return "", errMalformedQuery
+}
+
+func QueryJson(db *sql.DB, query *query) ([]byte, error) {
+	qStr, err := query.String()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := db.Query(qStr)
+	if err != nil {
+		return nil, err
+	}
+
+	json, err := JsonByte(rows)
+	if err != nil {
+		return nil, err
+	}
+
+	return json, nil
 }
