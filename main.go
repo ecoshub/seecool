@@ -6,13 +6,13 @@ import (
 
 type query struct {
 	queryType string
-	columns   []string
 	table     string
 	condition string
-	using     []string // for delete query
-	groups    []string
 	order     string
 	limit     string
+	columns   []string
+	groups    []string
+	using     []string // for delete query
 	keys      []string // for insert query
 	values    []string // for insert query
 }
