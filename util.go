@@ -25,22 +25,44 @@ func GetEnv() (map[string]string, error) {
 		return nil, err
 	}
 	defer rl.Close()
-	mp := make(map[string]string)
+	envMap := make(map[string]string)
 	line := rl.Next()
 	for line != nil {
 		tokens := wordSplit(string(line))
-		if len(tokens) > 3 || len(tokens) < 3 {
+		// blank line check
+		// comment sysmbol check '//'
+		if tokens == nil || startsWith(tokens[0], "//") {
+			line = rl.Next()
+			continue
+		}
+		lent := len(tokens)
+		// missing key or value
+		if lent < 3 {
 			return nil, malformedEnv
 		}
+		// middle char control.
 		if tokens[1] != "=" {
 			return nil, malformedEnv
 		}
-		key := strings.TrimSpace(tokens[0])
-		value := strings.TrimSpace(tokens[2])
-		mp[key] = value
+		if lent > 3 {
+			// end comment control
+			if startsWith(tokens[3], "//") {
+				tokens = tokens[:3]
+			}
+		}
+		envMap[tokens[0]] = tokens[2]
 		line = rl.Next()
 	}
-	return mp, nil
+	return envMap, nil
+}
+
+func startsWith(word, prefix string) bool {
+	if len(word) > 1 {
+		if string(word[:2]) == prefix {
+			return true
+		}
+	}
+	return false
 }
 
 func formatType(val string) string {
