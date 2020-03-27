@@ -17,7 +17,7 @@ func JsonByte(rows *sql.Rows) ([]byte, error) {
 func Json(rows *sql.Rows) (string, error) {
 	coltyps, err := rows.ColumnTypes()
 	if err != nil {
-		return "null", err
+		return "[]", err
 	}
 
 	lenc := len(coltyps)

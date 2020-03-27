@@ -1,70 +1,10 @@
 package seecool
 
 import (
-	"errors"
-	"os"
-	"penman"
 	"strconv"
 	"strings"
 	"unsafe"
 )
-
-var (
-	malformedEnv error = errors.New("Malformed .env file. line format must be 'key' = 'value'.")
-)
-
-func GetEnv() (map[string]string, error) {
-	dir, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-	dir = dir + penman.Sep() + ".env"
-
-	rl, err := penman.Reader(dir)
-	if err != nil {
-		return nil, err
-	}
-	defer rl.Close()
-	envMap := make(map[string]string)
-	line := rl.Next()
-	for line != nil {
-		tokens := wordSplit(string(line))
-		// blank line check
-		// comment sysmbol check '//'
-		if tokens == nil || startsWith(tokens[0], "//") {
-			line = rl.Next()
-			continue
-		}
-		lent := len(tokens)
-		// missing key or value
-		if lent < 3 {
-			return nil, malformedEnv
-		}
-		// middle char control.
-		if tokens[1] != "=" {
-			return nil, malformedEnv
-		}
-		if lent > 3 {
-			// end comment control
-			if startsWith(tokens[3], "//") {
-				tokens = tokens[:3]
-			}
-		}
-		envMap[tokens[0]] = tokens[2]
-		line = rl.Next()
-	}
-	return envMap, nil
-}
-
-func startsWith(word, prefix string) bool {
-	lenp := len(prefix)
-	if len(word) >= lenp {
-		if string(word[:lenp]) == prefix {
-			return true
-		}
-	}
-	return false
-}
 
 func formatType(val string) string {
 	if len(val) > 0 {
@@ -222,4 +162,18 @@ func astrixCheck(str string) (string, string) {
 		}
 	}
 	return "", str
+}
+
+func EscapeQuote(str string) string {
+	newStr := make([]byte, 0, len(str))
+	for i := 0; i < len(str); i++ {
+		// double quote
+		if str[i] == 34 {
+			// single quote
+			newStr = append(newStr, 39)
+		} else {
+			newStr = append(newStr, str[i])
+		}
+	}
+	return string(newStr)
 }
