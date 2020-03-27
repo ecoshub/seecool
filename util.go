@@ -57,8 +57,9 @@ func GetEnv() (map[string]string, error) {
 }
 
 func startsWith(word, prefix string) bool {
-	if len(word) > 1 {
-		if string(word[:2]) == prefix {
+	lenp := len(prefix)
+	if len(word) >= lenp {
+		if string(word[:lenp]) == prefix {
 			return true
 		}
 	}
