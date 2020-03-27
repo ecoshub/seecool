@@ -13,6 +13,11 @@ import (
 	"unsafe"
 )
 
+var (
+	malformedEnv error = errors.New("Malformed .env file. line format must be 'key' = 'value'.")
+	emptyFile    error = errors.New("File is empty.")
+)
+
 func formatType(val string) string {
 	if len(val) > 0 {
 		if isBool(val) {
@@ -149,7 +154,7 @@ func CsvToJson(file string) ([]byte, error) {
 	line := rl.Next()
 
 	if line == nil {
-		return nil, errors.New("Empty File")
+		return nil, emptyFile
 	}
 
 	columns := strings.Split(string(line), ",")
@@ -178,7 +183,7 @@ func CsvToJsonNoHeader(file string) ([]byte, error) {
 	line := rl.Next()
 
 	if line == nil {
-		return nil, errors.New("Empty File")
+		return nil, emptyFile
 	}
 
 	firstLine := strings.Split(string(line), ",")
@@ -223,12 +228,12 @@ func GetEnv() (map[string]string, error) {
 	mp := make(map[string]string)
 	line := rl.Next()
 	for line != nil {
-		tokens := strings.Split(string(line), " ")
+		tokens := wordSplit(string(line))
 		if len(tokens) > 3 || len(tokens) < 3 {
-			return nil, errors.New("Malformed.")
+			return nil, malformedEnv
 		}
 		if tokens[1] != "=" {
-			return nil, errors.New("Malformed.")
+			return nil, malformedEnv
 		}
 		key := strings.TrimSpace(tokens[0])
 		value := strings.TrimSpace(tokens[2])
@@ -236,6 +241,57 @@ func GetEnv() (map[string]string, error) {
 		line = rl.Next()
 	}
 	return mp, nil
+}
+
+func wordSplit(line string) []string {
+	lenl := len(line)
+	if lenl < 5 {
+		return nil
+	}
+	tokens := make([]string, 0, 3)
+	onWord := false
+	temp := ""
+	for i := 0; i < lenl; i++ {
+		curr := line[i]
+		if !space(curr) {
+			temp += string(curr)
+			if !onWord {
+				onWord = true
+				continue
+			}
+		} else {
+			if onWord {
+				tokens = append(tokens, temp)
+				temp = ""
+				onWord = false
+				continue
+			}
+		}
+	}
+	if temp != "" {
+		tokens = append(tokens, temp)
+	}
+	return tokens
+}
+
+func space(curr byte) bool {
+	// space
+	if curr == 32 {
+		return true
+	}
+	// tab
+	if curr == 9 {
+		return true
+	}
+	// new line NL
+	if curr == 10 {
+		return true
+	}
+	// return CR
+	if curr == 13 {
+		return true
+	}
+	return false
 }
 
 func arrStr(arr []string) string {
