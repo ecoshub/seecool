@@ -3,6 +3,9 @@ package seecool
 import "strconv"
 
 func cond(left, op, right string) string {
+	if right == "" {
+		return left + " IS NULL"
+	}
 	return left + " " + op + " '" + right + "'"
 }
 
