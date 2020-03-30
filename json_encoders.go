@@ -35,7 +35,7 @@ func CoreEncoder(i interface{}) string {
 	case reflect.Struct:
 		switch t.String() {
 		case "time.Time":
-			return v.Interface().(time.Time).String()
+			return v.Interface().(time.Time).Format("2006-01-02 15:04:05.000000000")
 		}
 	}
 	return "null"
